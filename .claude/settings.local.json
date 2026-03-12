@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(dotnet build:*)",
+      "Bash(find /c/Users/Robert/Desktop/ParentalControl -name \"*.xaml\" -o -name \"*.cs\" | xargs grep -l \"Admin\\\\|Administrator\" 2>/dev/null | head -10)",
+      "Bash(find /c/Users/Robert/Desktop/ParentalControl/src -type f -name \"*.cs\" -o -name \"*.xaml\" | xargs grep -l \"IsAdmin\\\\|IsAdministrator\\\\|admin\\\\|Administrator\" 2>/dev/null | grep -v \"/obj/\" | sort)"
+    ]
+  }
+}
