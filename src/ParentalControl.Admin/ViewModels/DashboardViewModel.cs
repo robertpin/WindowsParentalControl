@@ -48,6 +48,13 @@ public partial class DashboardViewModel : ObservableObject
                 UserRepository.Upsert(sid, username, existing?.IsRestricted ?? false);
             }
 
+            // Remove users who have been promoted to admin from the DB
+            foreach (var (sid, username, isAdmin) in systemUsers)
+            {
+                if (!isAdmin) continue;
+                UserRepository.DeleteBySid(sid);
+            }
+
             var dbUsers = UserRepository.GetAll();
             var standard = dbUsers.Select(UserRow.FromDatabase).ToList();
             var admins = systemUsers

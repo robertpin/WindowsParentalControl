@@ -62,6 +62,15 @@ public static class UserRepository
         cmd.ExecuteNonQuery();
     }
 
+    public static void DeleteBySid(string sid)
+    {
+        using var connection = DatabaseManager.CreateConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM users WHERE sid = @sid";
+        cmd.Parameters.AddWithValue("@sid", sid);
+        cmd.ExecuteNonQuery();
+    }
+
     private static User ReadUser(SqliteDataReader reader)
     {
         return new User
