@@ -66,6 +66,7 @@ public sealed class SessionTracker
         }
 
         var limit = LimitRepository.GetByUserId(user.Id);
+        UsageRecord? usage = null;
         if (limit is not null)
         {
             var now = TimeOnly.FromDateTime(DateTime.Now);
@@ -78,7 +79,7 @@ public sealed class SessionTracker
             }
 
             var today = DateOnly.FromDateTime(DateTime.Now);
-            var usage = UsageRepository.GetUsage(user.Id, today);
+            usage = UsageRepository.GetUsage(user.Id, today);
             if (usage is not null && usage.MinutesUsed >= limit.DailyMinutes)
             {
                 _logger.Information("Login denied (limit reached): {Username}", username);
@@ -89,7 +90,14 @@ public sealed class SessionTracker
         }
 
         _activeSessions.TryAdd(sessionId, new ActiveSession(sessionId, sid, username, DateTime.Now));
-        EventRepository.LogEvent(sid, EventType.LOGIN);
+
+        var loginDetail = "";
+        if (limit is not null)
+        {
+            var remaining = limit.DailyMinutes - (usage?.MinutesUsed ?? 0);
+            loginDetail = $"Remaining: {remaining / 60}h {remaining % 60}m";
+        }
+        EventRepository.LogEvent(sid, EventType.LOGIN, loginDetail);
         _logger.Information("User logged in (restricted): {Username}", username);
     }
 
@@ -125,8 +133,10 @@ public sealed class SessionTracker
         var now = DateTime.Now;
         foreach (var (sessionId, session) in _activeSessions)
         {
+            var sleepMinutes = (int)(now - session.LastTick).TotalMinutes;
+            var detail = sleepMinutes > 1 ? $"After ~{sleepMinutes} min sleep" : "";
             _activeSessions[sessionId] = session with { LastTick = now };
-            EventRepository.LogEvent(session.UserSid, EventType.WAKE);
+            EventRepository.LogEvent(session.UserSid, EventType.WAKE, detail);
         }
     }
 
@@ -152,8 +162,8 @@ public sealed class SessionTracker
             {
                 _logger.Warning("Time gap detected ({Elapsed} min) for {Username} — possible undetected sleep/hibernate",
                     elapsed, session.Username);
-                EventRepository.LogEvent(session.UserSid, EventType.SLEEP, "Detected retroactively");
-                EventRepository.LogEvent(session.UserSid, EventType.WAKE, "Detected retroactively");
+                EventRepository.LogEvent(session.UserSid, EventType.SLEEP, $"Detected retroactively (~{elapsed} min gap)");
+                EventRepository.LogEvent(session.UserSid, EventType.WAKE, $"Detected retroactively (~{elapsed} min gap)");
                 UsageRepository.AddMinutes(user.Id, today, 1);
                 _activeSessions[sessionId] = session with { LastTick = now };
                 continue;

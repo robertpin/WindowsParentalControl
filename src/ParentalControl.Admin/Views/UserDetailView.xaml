@@ -169,7 +169,8 @@
                           IsReadOnly="True"
                           CanUserAddRows="False"
                           MaxHeight="400"
-                          Margin="0,0,0,16">
+                          Margin="0,0,0,16"
+                          PreviewMouseWheel="DataGrid_PreviewMouseWheel">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="170" />
                         <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="130" />
