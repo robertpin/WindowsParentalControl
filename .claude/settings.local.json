@@ -14,7 +14,8 @@
       "Bash(LANG=C grep -boa 'MaterialDesign[A-Za-z]*TextBlock' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u | grep -i \"headline\\\\|body\\\\|title\\\\|subtitle\")",
       "Bash(LANG=C grep -boa 'MaterialDesignBodyLargeTextBlock' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | head -5)",
       "Bash(LANG=C grep -boa 'MaterialDesign[0-9]*\\\\.Defaults' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u)",
-      "Bash(LANG=C grep -boa 'Defaults\\\\.xaml' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u)"
+      "Bash(LANG=C grep -boa 'Defaults\\\\.xaml' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u)",
+      "Bash(find \"C:\\\\Users\\\\Robert\\\\Desktop\\\\ParentalControl\\\\src\\\\ParentalControl.Admin\" -name \"*.csproj\" -o -name \"*.xaml\" | grep -E \"\\\\.csproj$\")"
     ]
   }
 }

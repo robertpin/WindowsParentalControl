@@ -24,6 +24,8 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayName={#MyAppName}
+UninstallDisplayIcon={app}\admin\{#MyAppExeName}
+SetupIconFile=..\icon.ico
 CloseApplications=force
 
 [Languages]
@@ -38,9 +40,9 @@ Source: "..\publish\admin\*"; DestDir: "{app}\admin"; Flags: ignoreversion recur
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\admin\{#MyAppExeName}"; \
-    Comment: "Launch Parental Control Admin"
+    IconFilename: "{app}\admin\{#MyAppExeName}"; Comment: "Launch Parental Control Admin"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\admin\{#MyAppExeName}"; \
-    Comment: "Launch Parental Control Admin"
+    IconFilename: "{app}\admin\{#MyAppExeName}"; Comment: "Launch Parental Control Admin"
 
 [UninstallRun]
 ; Stop and delete the service before files are removed

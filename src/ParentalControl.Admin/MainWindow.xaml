@@ -4,6 +4,7 @@
         xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:vm="clr-namespace:ParentalControl.Admin.ViewModels"
         xmlns:views="clr-namespace:ParentalControl.Admin.Views"
+        Icon="pack://application:,,,/icon.ico"
         Title="Parental Control - Administration"
         Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
@@ -20,5 +21,34 @@
         </DataTemplate>
     </Window.Resources>
 
-    <ContentControl Content="{Binding CurrentView}" />
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="8,3,16,1">
+            <TextBlock Text="{Binding ServiceStatusText}"
+                       Foreground="{Binding ServiceStatusColor}"
+                       FontSize="11"
+                       VerticalAlignment="Center" />
+            <md:PackIcon Kind="CircleSmall" Width="14" Height="14"
+                         Foreground="{Binding ServiceStatusColor}"
+                         VerticalAlignment="Center"
+                         Visibility="{Binding IsServiceRunning, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <md:PackIcon Kind="Close" Width="11" Height="11"
+                         Foreground="{Binding ServiceStatusColor}"
+                         VerticalAlignment="Center"
+                         Margin="2,0,0,0">
+                <md:PackIcon.Style>
+                    <Style TargetType="md:PackIcon">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsServiceRunning}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </md:PackIcon.Style>
+            </md:PackIcon>
+        </StackPanel>
+
+        <ContentControl Content="{Binding CurrentView}" />
+    </DockPanel>
 </Window>
