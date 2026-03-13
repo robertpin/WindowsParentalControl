@@ -54,6 +54,8 @@ Filename: "sc"; Parameters: "delete {#ServiceName}"; \
 Type: files; Name: "{commondesktop}\{#MyAppName}.lnk"
 ; Remove ProgramData folder on uninstall (logs, database)
 Type: filesandordirs; Name: "C:\ProgramData\ParentalControl"
+; Remove entire install directory (Program Files\ParentalControl)
+Type: filesandordirs; Name: "{app}"
 
 [Code]
 function ServiceExists(): Boolean;
