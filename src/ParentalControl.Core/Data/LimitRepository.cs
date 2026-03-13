@@ -42,4 +42,13 @@ public static class LimitRepository
         cmd.Parameters.AddWithValue("@end", config.ScheduleEnd.ToString("HH:mm"));
         cmd.ExecuteNonQuery();
     }
+
+    public static void Delete(int userId)
+    {
+        using var connection = DatabaseManager.CreateConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM limits WHERE user_id = @userId";
+        cmd.Parameters.AddWithValue("@userId", userId);
+        cmd.ExecuteNonQuery();
+    }
 }

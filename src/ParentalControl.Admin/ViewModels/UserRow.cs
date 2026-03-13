@@ -24,16 +24,49 @@ public partial class UserRow : ObservableObject
     public string UserType => IsAdmin ? "Administrator" : "Standard User";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LimitSummary))]
     private int? _dailyMinutes;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScheduleSummary))]
     private string? _scheduleStart;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScheduleSummary))]
     private string? _scheduleEnd;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(LimitSummary))]
     private int _todayMinutesUsed;
+
+    public string LimitSummary
+    {
+        get
+        {
+            if (!DailyMinutes.HasValue) return "No limits";
+            var total = DailyMinutes.Value;
+            var remaining = Math.Max(0, total - TodayMinutesUsed);
+            return $"{FormatMinutes(total)} / day ({FormatMinutes(remaining)} remaining)";
+        }
+    }
+
+    public string ScheduleSummary
+    {
+        get
+        {
+            if (ScheduleStart is not null && ScheduleEnd is not null)
+                return $"{ScheduleStart} - {ScheduleEnd}";
+            return "No schedule";
+        }
+    }
+
+    private static string FormatMinutes(int minutes)
+    {
+        if (minutes < 60) return $"{minutes}min";
+        var h = minutes / 60;
+        var m = minutes % 60;
+        return m > 0 ? $"{h}h {m}min" : $"{h}h";
+    }
 
     public static UserRow ForAdmin(string sid, string username)
     {
@@ -91,5 +124,12 @@ public partial class UserRow : ObservableObject
             ScheduleStart = null;
             ScheduleEnd = null;
         }
+    }
+
+    public void RefreshUsage()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var usage = UsageRepository.GetUsage(Id, today);
+        TodayMinutesUsed = usage?.MinutesUsed ?? 0;
     }
 }

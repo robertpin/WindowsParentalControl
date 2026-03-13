@@ -4,7 +4,17 @@
       "WebSearch",
       "Bash(dotnet build:*)",
       "Bash(find /c/Users/Robert/Desktop/ParentalControl -name \"*.xaml\" -o -name \"*.cs\" | xargs grep -l \"Admin\\\\|Administrator\" 2>/dev/null | head -10)",
-      "Bash(find /c/Users/Robert/Desktop/ParentalControl/src -type f -name \"*.cs\" -o -name \"*.xaml\" | xargs grep -l \"IsAdmin\\\\|IsAdministrator\\\\|admin\\\\|Administrator\" 2>/dev/null | grep -v \"/obj/\" | sort)"
+      "Bash(find /c/Users/Robert/Desktop/ParentalControl/src -type f -name \"*.cs\" -o -name \"*.xaml\" | xargs grep -l \"IsAdmin\\\\|IsAdministrator\\\\|admin\\\\|Administrator\" 2>/dev/null | grep -v \"/obj/\" | sort)",
+      "Bash(cd C:/Users/Robert/Desktop/ParentalControl && dotnet restore src/ParentalControl.Admin/ParentalControl.Admin.csproj)",
+      "Bash(cd /tmp && unzip -l /c/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/materialdesignthemes.5.1.0.nupkg 2>/dev/null | grep -i \"\\\\.xaml\" | head -20)",
+      "Bash(find /c/Users/Robert/Desktop/ParentalControl -type f \\\\\\( -name \"*.xaml\" -o -name \"*.cs\" \\\\\\) 2>/dev/null | head -20)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(LANG=C grep -boa 'MaterialDesign[A-Za-z]*Window' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u)",
+      "Bash(LANG=C grep -boa 'MaterialDesign[A-Za-z]*TextBlock' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u | grep -i \"headline\\\\|body\\\\|title\\\\|subtitle\")",
+      "Bash(LANG=C grep -boa 'MaterialDesignBodyLargeTextBlock' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | head -5)",
+      "Bash(LANG=C grep -boa 'MaterialDesign[0-9]*\\\\.Defaults' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u)",
+      "Bash(LANG=C grep -boa 'Defaults\\\\.xaml' \"C:/Users/Robert/.nuget/packages/materialdesignthemes/5.1.0/lib/net8.0/MaterialDesignThemes.Wpf.dll\" | sort -t: -k2 -u)"
     ]
   }
 }
