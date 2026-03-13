@@ -30,6 +30,7 @@ Parental Control is a **Windows desktop application** that lets administrators e
 ### Daily Time Limits
 - Set a maximum number of minutes per day for each user (default: 120 minutes)
 - Usage is tracked in real time, accumulating every 60 seconds
+- Administrators can directly edit a user's current daily usage from the Admin UI (useful for granting extra time or correcting usage)
 - Resets automatically at midnight
 
 ### Schedule Windows
@@ -55,11 +56,28 @@ All enforcement actions are logged with timestamps, user SIDs, and details:
 | `LIMIT_REACHED` | Daily usage limit was reached |
 | `FORCED_LOGOUT` | User was forcefully logged off |
 | `LOGIN_DENIED` | Login attempt was rejected |
+| `CLOCK_TAMPER` | System clock manipulation was detected |
+
+### Clock Tamper Detection
+- Detects when the system clock is set backwards (e.g., a user trying to gain extra screen time)
+- Immediately fills the restricted user's daily usage to their maximum allowed minutes, locking them out for the rest of the day
+- Forces the user off the system
+- Logs a `CLOCK_TAMPER` event with timestamps showing the time reversal
 
 ### Sleep/Wake Awareness
 - Usage tracking pauses when the system enters sleep mode
 - Resumes accurately on wake — sleep time is not counted against the user
 - All active session times are flushed to the database before sleep
+- Retroactively detects undetected sleep/hibernate events by identifying gaps in session activity greater than 2 minutes
+
+### Data Retention
+- Events and usage records older than 30 days are automatically deleted
+- Cleanup runs daily at midnight
+- Keeps the database size manageable over time
+
+### Security
+- The `C:\ProgramData\ParentalControl\` directory is locked via ACLs to SYSTEM and Administrators only
+- Restricted users cannot directly access or modify the database
 
 ### Service Status Monitoring
 - The admin UI polls the Windows Service status every 5 seconds
@@ -130,6 +148,8 @@ ParentalControl/
 │   │   │   ├── DashboardViewModel.cs    # User discovery, event loading
 │   │   │   ├── UserDetailViewModel.cs   # Limit editing, validation, save/remove
 │   │   │   └── UserRow.cs              # Per-user presentation model
+│   │   ├── Helpers/
+│   │   │   └── DataGridScrollHelper.cs  # Shared DataGrid scroll behavior
 │   │   └── Services/
 │   │       └── UserDiscovery.cs         # Windows local user enumeration
 │   │
