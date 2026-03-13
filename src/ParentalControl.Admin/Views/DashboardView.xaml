@@ -1,0 +1,138 @@
+<UserControl x:Class="ParentalControl.Admin.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="16,4,16,16">
+
+            <!-- ═══ Standard Users ═══ -->
+            <md:ColorZone Mode="PrimaryMid" Padding="8,6" CornerRadius="4" Margin="0,0,0,8">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Command="{Binding RefreshUsersCommand}"
+                            ToolTip="Refresh users" Width="28" Height="28">
+                        <md:PackIcon Kind="Refresh" Width="18" Height="18" />
+                    </Button>
+                    <TextBlock Text="Standard Users"
+                               FontSize="14" FontWeight="DemiBold"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                               VerticalAlignment="Center" />
+                </DockPanel>
+            </md:ColorZone>
+
+            <ItemsControl ItemsSource="{Binding StandardUsers}" Margin="0,0,0,24">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <md:Card Width="200" Margin="8" Padding="0"
+                                 md:ElevationAssist.Elevation="Dp2"
+                                 Cursor="Hand">
+                            <Button Command="{Binding DataContext.NavigateToUserCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                    HorizontalContentAlignment="Center"
+                                    Height="Auto"
+                                    Padding="16" Margin="0">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <md:PackIcon Kind="Account" Width="48" Height="48"
+                                                 HorizontalAlignment="Center" Margin="0,0,0,8"
+                                                 Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                    <TextBlock Text="{Binding Username}"
+                                               FontSize="16" FontWeight="Bold"
+                                               HorizontalAlignment="Center" />
+                                    <TextBlock Text="{Binding LimitSummary}"
+                                               FontSize="12" Opacity="0.7"
+                                               HorizontalAlignment="Center"
+                                               TextWrapping="Wrap"
+                                               TextAlignment="Center" Margin="0,4,0,0" />
+                                    <TextBlock Text="{Binding ScheduleSummary}"
+                                               FontSize="12" Opacity="0.7"
+                                               HorizontalAlignment="Center" Margin="0,2,0,0" />
+                                </StackPanel>
+                            </Button>
+                        </md:Card>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- ═══ Administrator Users ═══ -->
+            <md:ColorZone Mode="PrimaryMid" Padding="8,6" CornerRadius="4" Margin="0,0,0,4">
+                <DockPanel>
+                    <TextBlock Text="Administrator Users"
+                               FontSize="14" FontWeight="DemiBold"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                               VerticalAlignment="Center" />
+                </DockPanel>
+            </md:ColorZone>
+            <TextBlock Text="Limits cannot be placed on Administrator users because they have permissions to remove them. If you want to add limits to one of these users change the User Type to Standard account first."
+                       FontStyle="Italic" Opacity="0.6" Margin="12,4,0,8" TextWrapping="Wrap" />
+
+            <ItemsControl ItemsSource="{Binding AdminUsers}" Margin="0,0,0,24">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <md:Card Width="200" Margin="8" Padding="16"
+                                 md:ElevationAssist.Elevation="Dp1"
+                                 Opacity="0.5" IsHitTestVisible="False">
+                            <StackPanel HorizontalAlignment="Center">
+                                <md:PackIcon Kind="ShieldAccount" Width="48" Height="48"
+                                             HorizontalAlignment="Center" Margin="0,0,0,8"
+                                             Foreground="Gray" />
+                                <TextBlock Text="{Binding Username}"
+                                           FontSize="16" FontWeight="Bold"
+                                           HorizontalAlignment="Center"
+                                           Foreground="Gray" />
+                                <TextBlock Text="Administrator"
+                                           FontSize="12" Opacity="0.7"
+                                           HorizontalAlignment="Center" Margin="0,4,0,0"
+                                           Foreground="Gray" />
+                            </StackPanel>
+                        </md:Card>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- ═══ Events ═══ -->
+            <md:ColorZone Mode="PrimaryMid" Padding="8,6" CornerRadius="4" Margin="0,0,0,8">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Command="{Binding RefreshEventsCommand}"
+                            ToolTip="Refresh events" Width="28" Height="28">
+                        <md:PackIcon Kind="Refresh" Width="18" Height="18" />
+                    </Button>
+                    <TextBlock Text="Recent Events"
+                               FontSize="14" FontWeight="DemiBold"
+                               Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                               VerticalAlignment="Center" />
+                </DockPanel>
+            </md:ColorZone>
+
+            <DataGrid ItemsSource="{Binding EventRecords}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      MaxHeight="400"
+                      Margin="0,0,0,16">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="170" />
+                    <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="130" />
+                    <DataGridTextColumn Header="User SID" Binding="{Binding UserSid}" Width="280" />
+                    <DataGridTextColumn Header="Event Type" Binding="{Binding EventType}" Width="120" />
+                    <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
