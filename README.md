@@ -4,6 +4,10 @@
 >
 > This application was entirely vibe coded using **Claude Code with Claude Opus 4.6 (High)** and should be treated as such. The code was generated through conversational AI-assisted development — no line was hand-written. While functional and tested on the developer's machine, it has not undergone formal code review, security audit, or extensive QA. Use at your own discretion, review the source before deploying in any sensitive environment, and expect rough edges.
 
+## Download
+
+Download the latest installer (`ParentalControlSetup.exe`) from the [GitHub Releases page](https://github.com/robertpin/WindowsParentalControl/releases). Run it as administrator and follow the on-screen instructions.
+
 ---
 
 ## What Is This?
@@ -281,4 +285,4 @@ The Admin UI and the Service both read/write the same SQLite database at `C:\Pro
 
 ## License
 
-This project does not currently include a license. All rights reserved.
+This project is licensed under the [MIT License](LICENSE).
