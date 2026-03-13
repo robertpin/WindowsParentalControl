@@ -35,6 +35,22 @@ public static class UsageRepository
         cmd.ExecuteNonQuery();
     }
 
+    public static void SetUsage(int userId, DateOnly date, int minutes)
+    {
+        using var connection = DatabaseManager.CreateConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO usage (user_id, date, minutes_used)
+            VALUES (@userId, @date, @minutes)
+            ON CONFLICT(user_id, date) DO UPDATE SET
+                minutes_used = @minutes
+            """;
+        cmd.Parameters.AddWithValue("@userId", userId);
+        cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
+        cmd.Parameters.AddWithValue("@minutes", minutes);
+        cmd.ExecuteNonQuery();
+    }
+
     public static List<UsageRecord> GetUsageRange(int userId, DateOnly from, DateOnly to)
     {
         using var connection = DatabaseManager.CreateConnection();

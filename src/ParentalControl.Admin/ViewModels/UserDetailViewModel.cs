@@ -24,6 +24,9 @@ public partial class UserDetailViewModel : ObservableObject
     private string _scheduleEnd = "22:00";
 
     [ObservableProperty]
+    private int _editableUsageMinutes;
+
+    [ObservableProperty]
     private ObservableCollection<EventRecord> _eventRecords = [];
 
     public UserDetailViewModel(UserRow user, Dictionary<string, string> sidToUsername, Action navigateBack)
@@ -38,6 +41,7 @@ public partial class UserDetailViewModel : ObservableObject
         RefreshUser();
         LoadLimitFields();
         RefreshEvents();
+        EditableUsageMinutes = User.TodayMinutesUsed;
     }
 
     [RelayCommand]
@@ -52,6 +56,7 @@ public partial class UserDetailViewModel : ObservableObject
         User.RefreshUsage();
         User.RefreshLimits();
         LoadLimitFields();
+        EditableUsageMinutes = User.TodayMinutesUsed;
     }
 
     [RelayCommand]
@@ -63,6 +68,22 @@ public partial class UserDetailViewModel : ObservableObject
             evt.Username = _sidToUsername.TryGetValue(evt.UserSid, out var name) ? name : evt.UserSid;
         }
         EventRecords = new ObservableCollection<EventRecord>(events);
+    }
+
+    [RelayCommand]
+    private void SetUsage()
+    {
+        if (EditableUsageMinutes < 0)
+        {
+            MessageBox.Show("Usage minutes cannot be negative.", "Validation Error",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        UsageRepository.SetUsage(User.Id, today, EditableUsageMinutes);
+        User.RefreshUsage();
+        EditableUsageMinutes = User.TodayMinutesUsed;
     }
 
     [RelayCommand]
