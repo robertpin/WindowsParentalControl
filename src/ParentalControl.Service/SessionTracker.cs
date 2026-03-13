@@ -108,9 +108,11 @@ public sealed class SessionTracker
         _isAwake = false;
         _logger.Information("System entering sleep");
 
+        var now = DateTime.Now;
         foreach (var (sessionId, session) in _activeSessions)
         {
             FlushSessionTime(session);
+            _activeSessions[sessionId] = session with { LastTick = now };
             EventRepository.LogEvent(session.UserSid, EventType.SLEEP);
         }
     }
@@ -145,6 +147,18 @@ public sealed class SessionTracker
             if (user is null) continue;
 
             var today = DateOnly.FromDateTime(now);
+
+            if (elapsed > 2)
+            {
+                _logger.Warning("Time gap detected ({Elapsed} min) for {Username} — possible undetected sleep/hibernate",
+                    elapsed, session.Username);
+                EventRepository.LogEvent(session.UserSid, EventType.SLEEP, "Detected retroactively");
+                EventRepository.LogEvent(session.UserSid, EventType.WAKE, "Detected retroactively");
+                UsageRepository.AddMinutes(user.Id, today, 1);
+                _activeSessions[sessionId] = session with { LastTick = now };
+                continue;
+            }
+
             UsageRepository.AddMinutes(user.Id, today, elapsed);
             _activeSessions[sessionId] = session with { LastTick = now };
         }
@@ -155,6 +169,7 @@ public sealed class SessionTracker
         var now = DateTime.Now;
         var elapsed = (int)(now - session.LastTick).TotalMinutes;
         if (elapsed < 1) return;
+        if (elapsed > 2) elapsed = 1;
 
         var user = UserRepository.GetBySid(session.UserSid);
         if (user is null) return;
