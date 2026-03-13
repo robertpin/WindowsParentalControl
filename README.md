@@ -239,11 +239,12 @@ Run `ParentalControlSetup.exe` as administrator. The installer will:
 
 ### Uninstalling
 
-Use "Add or Remove Programs" in Windows Settings, or run the uninstaller from the Start Menu. Uninstallation will:
+Navigate to `C:\Program Files\ParentalControl\` and run `uninst000.exe`. This will launch the uninstaller, which will:
 
-- Stop and delete the Windows Service
+- Stop and remove the `ParentalControl.Service` Windows Service
 - Remove all program files from `C:\Program Files\ParentalControl\`
 - Remove the database and logs from `C:\ProgramData\ParentalControl\`
+- Remove Start Menu and Desktop shortcuts
 
 ---
 
