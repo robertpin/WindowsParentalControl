@@ -6,6 +6,7 @@ public static class DatabaseManager
 {
     private const string DataDirectory = @"C:\ProgramData\ParentalControl";
     private const string DatabaseFileName = "data.db";
+    public const int RetentionDays = 30;
 
     public static string DatabasePath => Path.Combine(DataDirectory, DatabaseFileName);
 
@@ -53,6 +54,8 @@ public static class DatabaseManager
                 event_type TEXT NOT NULL,
                 details TEXT NOT NULL DEFAULT ''
             );
+
+            CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events (timestamp);
             """;
         schemaCmd.ExecuteNonQuery();
     }

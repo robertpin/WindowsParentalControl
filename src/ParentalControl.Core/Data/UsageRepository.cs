@@ -57,6 +57,15 @@ public static class UsageRepository
         return records;
     }
 
+    public static int DeleteOlderThan(DateOnly cutoff)
+    {
+        using var connection = DatabaseManager.CreateConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM usage WHERE date < @cutoff";
+        cmd.Parameters.AddWithValue("@cutoff", cutoff.ToString("yyyy-MM-dd"));
+        return cmd.ExecuteNonQuery();
+    }
+
     private static UsageRecord ReadUsageRecord(SqliteDataReader reader)
     {
         return new UsageRecord

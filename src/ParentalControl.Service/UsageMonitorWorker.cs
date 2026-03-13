@@ -8,6 +8,7 @@ public sealed class UsageMonitorWorker : BackgroundService
     private readonly SessionTracker _sessionTracker;
     private readonly Serilog.ILogger _logger;
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(60);
+    private DateOnly _lastCleanupDate = DateOnly.MinValue;
 
     public UsageMonitorWorker(SessionTracker sessionTracker, Serilog.ILogger logger)
     {
@@ -22,6 +23,7 @@ public sealed class UsageMonitorWorker : BackgroundService
         try
         {
             ProcessTick();
+            RunCleanupIfNeeded();
         }
         catch (Exception ex)
         {
@@ -38,6 +40,7 @@ public sealed class UsageMonitorWorker : BackgroundService
             try
             {
                 ProcessTick();
+                RunCleanupIfNeeded();
             }
             catch (Exception ex)
             {
@@ -82,6 +85,26 @@ public sealed class UsageMonitorWorker : BackgroundService
                 EventRepository.LogEvent(session.UserSid, EventType.FORCED_LOGOUT, "Outside allowed schedule");
                 _sessionTracker.RemoveSession(sessionId);
             }
+        }
+    }
+
+    private void RunCleanupIfNeeded()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (today <= _lastCleanupDate) return;
+
+        _lastCleanupDate = today;
+
+        var eventsCutoff = DateTime.Now.AddDays(-DatabaseManager.RetentionDays);
+        var usageCutoff = today.AddDays(-DatabaseManager.RetentionDays);
+
+        var eventsDeleted = EventRepository.DeleteOlderThan(eventsCutoff);
+        var usageDeleted = UsageRepository.DeleteOlderThan(usageCutoff);
+
+        if (eventsDeleted > 0 || usageDeleted > 0)
+        {
+            _logger.Information("Database cleanup: deleted {EventsDeleted} events and {UsageDeleted} usage records older than {Days} days",
+                eventsDeleted, usageDeleted, DatabaseManager.RetentionDays);
         }
     }
 }

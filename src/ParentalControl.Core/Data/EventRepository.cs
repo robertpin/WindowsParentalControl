@@ -62,4 +62,13 @@ public static class EventRepository
         }
         return events;
     }
+
+    public static int DeleteOlderThan(DateTime cutoff)
+    {
+        using var connection = DatabaseManager.CreateConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM events WHERE timestamp < @cutoff";
+        cmd.Parameters.AddWithValue("@cutoff", cutoff.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
+        return cmd.ExecuteNonQuery();
+    }
 }
