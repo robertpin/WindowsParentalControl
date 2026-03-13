@@ -73,7 +73,7 @@ public static class SessionManager
             var sid = (SecurityIdentifier)account.Translate(typeof(SecurityIdentifier));
             return sid.Value;
         }
-        catch
+        catch (IdentityNotMappedException)
         {
             return null;
         }

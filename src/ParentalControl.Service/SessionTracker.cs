@@ -70,7 +70,7 @@ public sealed class SessionTracker
         if (limit is not null)
         {
             var now = TimeOnly.FromDateTime(DateTime.Now);
-            if (now < limit.ScheduleStart || now > limit.ScheduleEnd)
+            if (now < limit.ScheduleStart || now >= limit.ScheduleEnd)
             {
                 _logger.Information("Login denied (outside schedule): {Username}", username);
                 EventRepository.LogEvent(sid, EventType.LOGIN_DENIED, "Outside allowed schedule");
@@ -150,6 +150,33 @@ public sealed class SessionTracker
         var now = DateTime.Now;
         foreach (var (sessionId, session) in _activeSessions)
         {
+            if (now < session.LastTick)
+            {
+                _logger.Warning("Clock manipulation detected for {Username}: current time {Now} is before last tick {LastTick}",
+                    session.Username, now, session.LastTick);
+
+                var clockUser = UserRepository.GetBySid(session.UserSid);
+                if (clockUser is not null && clockUser.IsRestricted)
+                {
+                    var limit = LimitRepository.GetByUserId(clockUser.Id);
+                    if (limit is not null)
+                    {
+                        var lockDate = DateOnly.FromDateTime(now);
+                        UsageRepository.AddMinutes(clockUser.Id, lockDate, limit.DailyMinutes);
+                        EventRepository.LogEvent(session.UserSid, EventType.CLOCK_TAMPER,
+                            $"Clock went backwards: {session.LastTick:HH:mm:ss} → {now:HH:mm:ss}. Locked for today.");
+                        SessionManager.ForceLogoff(sessionId);
+                        _activeSessions.TryRemove(sessionId, out _);
+                        continue;
+                    }
+                }
+
+                EventRepository.LogEvent(session.UserSid, EventType.CLOCK_TAMPER,
+                    $"Clock went backwards: {session.LastTick:HH:mm:ss} → {now:HH:mm:ss}");
+                _activeSessions[sessionId] = session with { LastTick = now };
+                continue;
+            }
+
             var elapsed = (int)(now - session.LastTick).TotalMinutes;
             if (elapsed < 1) continue;
 
@@ -177,6 +204,7 @@ public sealed class SessionTracker
     private void FlushSessionTime(ActiveSession session)
     {
         var now = DateTime.Now;
+        if (now < session.LastTick) return;
         var elapsed = (int)(now - session.LastTick).TotalMinutes;
         if (elapsed < 1) return;
         if (elapsed > 2) elapsed = 1;

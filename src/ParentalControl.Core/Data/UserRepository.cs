@@ -48,7 +48,8 @@ public static class UserRepository
         cmd.Parameters.AddWithValue("@restricted", isRestricted ? 1 : 0);
 
         using var reader = cmd.ExecuteReader();
-        reader.Read();
+        if (!reader.Read())
+            throw new InvalidOperationException("Upsert did not return a row");
         return ReadUser(reader);
     }
 

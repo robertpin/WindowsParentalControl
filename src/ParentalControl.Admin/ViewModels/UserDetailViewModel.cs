@@ -76,9 +76,16 @@ public partial class UserDetailViewModel : ObservableObject
             return;
         }
 
-        if (DailyMinutes < 1)
+        if (start >= end)
         {
-            MessageBox.Show("Daily minutes must be at least 1.", "Validation Error",
+            MessageBox.Show("Schedule start must be before schedule end.", "Validation Error",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (DailyMinutes < 1 || DailyMinutes > 1440)
+        {
+            MessageBox.Show("Daily minutes must be between 1 and 1440 (24 hours).", "Validation Error",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }

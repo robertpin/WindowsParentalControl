@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Data.Sqlite;
 using ParentalControl.Core.Models;
 
@@ -46,17 +47,20 @@ public static class EventRepository
             ? "WHERE " + string.Join(" AND ", conditions)
             : "";
 
-        cmd.CommandText = $"SELECT timestamp, user_sid, event_type, details FROM events {whereClause} ORDER BY timestamp DESC";
+        cmd.CommandText = $"SELECT timestamp, user_sid, event_type, details FROM events {whereClause} ORDER BY timestamp DESC LIMIT 10000";
 
         var events = new List<EventRecord>();
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
         {
+            if (!Enum.TryParse<EventType>(reader.GetString(2), out var eventType))
+                continue;
+
             events.Add(new EventRecord
             {
-                Timestamp = DateTime.Parse(reader.GetString(0)),
+                Timestamp = DateTime.ParseExact(reader.GetString(0), "yyyy-MM-ddTHH:mm:ss.fff", CultureInfo.InvariantCulture),
                 UserSid = reader.GetString(1),
-                EventType = Enum.Parse<EventType>(reader.GetString(2)),
+                EventType = eventType,
                 Details = reader.GetString(3)
             });
         }

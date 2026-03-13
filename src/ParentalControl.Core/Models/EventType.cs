@@ -8,5 +8,6 @@ public enum EventType
     WAKE,
     LIMIT_REACHED,
     FORCED_LOGOUT,
-    LOGIN_DENIED
+    LOGIN_DENIED,
+    CLOCK_TAMPER
 }

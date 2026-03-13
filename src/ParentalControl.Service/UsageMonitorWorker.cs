@@ -77,7 +77,7 @@ public sealed class UsageMonitorWorker : BackgroundService
                 continue;
             }
 
-            if (now < limit.ScheduleStart || now > limit.ScheduleEnd)
+            if (now < limit.ScheduleStart || now >= limit.ScheduleEnd)
             {
                 _logger.Information("Outside allowed schedule for {Username} (allowed {Start}-{End})",
                     session.Username, limit.ScheduleStart, limit.ScheduleEnd);

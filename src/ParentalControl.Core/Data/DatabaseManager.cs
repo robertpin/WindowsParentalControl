@@ -1,3 +1,5 @@
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.Data.Sqlite;
 
 namespace ParentalControl.Core.Data;
@@ -14,12 +16,31 @@ public static class DatabaseManager
 
     public static void Initialize()
     {
-        Directory.CreateDirectory(DataDirectory);
+        var dirInfo = new DirectoryInfo(DataDirectory);
+        if (!dirInfo.Exists)
+        {
+            dirInfo.Create();
+            var security = dirInfo.GetAccessControl();
+            security.SetAccessRuleProtection(true, false);
+            security.AddAccessRule(new FileSystemAccessRule(
+                new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+                FileSystemRights.FullControl,
+                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                PropagationFlags.None,
+                AccessControlType.Allow));
+            security.AddAccessRule(new FileSystemAccessRule(
+                new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+                FileSystemRights.FullControl,
+                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                PropagationFlags.None,
+                AccessControlType.Allow));
+            dirInfo.SetAccessControl(security);
+        }
 
         using var connection = CreateConnection();
 
         using var pragmaCmd = connection.CreateCommand();
-        pragmaCmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;";
+        pragmaCmd.CommandText = "PRAGMA journal_mode=WAL;";
         pragmaCmd.ExecuteNonQuery();
 
         using var schemaCmd = connection.CreateCommand();
@@ -56,6 +77,7 @@ public static class DatabaseManager
             );
 
             CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events (timestamp);
+            CREATE INDEX IF NOT EXISTS idx_events_user_timestamp ON events (user_sid, timestamp);
             """;
         schemaCmd.ExecuteNonQuery();
     }

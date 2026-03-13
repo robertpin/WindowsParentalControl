@@ -12,10 +12,10 @@
     <Resource Include="..\..\icon.ico" Link="icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.*" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.*" />
+    <PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.0.1" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ParentalControl.Core\ParentalControl.Core.csproj" />
