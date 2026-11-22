@@ -25,7 +25,8 @@ Parental Control is a **Windows desktop application** that lets administrators e
 - Automatically discovers all local Windows user accounts
 - Filters out built-in system accounts (DefaultAccount, WDAGUtilityAccount, Guest)
 - Distinguishes between standard users and administrators
-- Administrator accounts are protected — they cannot be restricted (displayed as read-only in the UI)
+- Built-in accounts and the Administrators group are identified by SID, so detection works on any Windows display language (e.g. "Администраторы" on Russian Windows)
+- Administrator accounts are protected — they cannot be restricted (displayed as read-only in the UI), and the service never enforces limits on a member of the Administrators group, even if it is still marked as restricted in the database
 
 ### Daily Time Limits
 - Set a maximum number of minutes per day for each user (default: 120 minutes)

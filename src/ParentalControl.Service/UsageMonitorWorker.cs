@@ -59,7 +59,7 @@ public sealed class UsageMonitorWorker : BackgroundService
         foreach (var (sessionId, session) in _sessionTracker.ActiveSessions)
         {
             var user = UserRepository.GetBySid(session.UserSid);
-            if (user is null || !user.IsRestricted) continue;
+            if (user is null || !user.IsRestricted || session.IsAdmin) continue;
 
             var limit = LimitRepository.GetByUserId(user.Id);
             if (limit is null) continue;
