@@ -63,13 +63,31 @@ public static class UserRepository
         cmd.ExecuteNonQuery();
     }
 
+    /// <summary>
+    /// Deletes the user together with the rows that reference it (foreign keys are enforced).
+    /// Events are kept: they reference users by SID, not by id.
+    /// </summary>
     public static void DeleteBySid(string sid)
     {
         using var connection = DatabaseManager.CreateConnection();
+        using var transaction = connection.BeginTransaction();
+
+        foreach (var table in new[] { "usage", "limits" })
+        {
+            using var dependentCmd = connection.CreateCommand();
+            dependentCmd.Transaction = transaction;
+            dependentCmd.CommandText = $"DELETE FROM {table} WHERE user_id IN (SELECT id FROM users WHERE sid = @sid)";
+            dependentCmd.Parameters.AddWithValue("@sid", sid);
+            dependentCmd.ExecuteNonQuery();
+        }
+
         using var cmd = connection.CreateCommand();
+        cmd.Transaction = transaction;
         cmd.CommandText = "DELETE FROM users WHERE sid = @sid";
         cmd.Parameters.AddWithValue("@sid", sid);
         cmd.ExecuteNonQuery();
+
+        transaction.Commit();
     }
 
     private static User ReadUser(SqliteDataReader reader)

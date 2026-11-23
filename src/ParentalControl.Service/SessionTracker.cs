@@ -4,7 +4,10 @@ using ParentalControl.Core.Models;
 using ParentalControl.Core.Platform;
 namespace ParentalControl.Service;
 
-public sealed record ActiveSession(int SessionId, string UserSid, string Username, DateTime LastTick);
+/// <param name="IsAdmin">
+/// Member of the local Administrators group: never restricted, even if marked as restricted in the database.
+/// </param>
+public sealed record ActiveSession(int SessionId, string UserSid, string Username, DateTime LastTick, bool IsAdmin);
 
 public sealed class SessionTracker
 {
@@ -34,7 +37,8 @@ public sealed class SessionTracker
                 user = UserRepository.Upsert(sid, username, false);
             }
 
-            _activeSessions.TryAdd(sessionId, new ActiveSession(sessionId, sid, username, DateTime.Now));
+            _activeSessions.TryAdd(sessionId,
+                new ActiveSession(sessionId, sid, username, DateTime.Now, LocalAccounts.IsAdministrator(sid)));
             _logger.Information("Recovered existing session: {Username} (SID: {Sid}) on session {SessionId}",
                 username, sid, sessionId);
         }
@@ -57,9 +61,16 @@ public sealed class SessionTracker
             user = UserRepository.Upsert(sid, username, false);
         }
 
-        if (!user.IsRestricted)
+        var isAdmin = LocalAccounts.IsAdministrator(sid);
+        if (user.IsRestricted && isAdmin)
         {
-            _activeSessions.TryAdd(sessionId, new ActiveSession(sessionId, sid, username, DateTime.Now));
+            _logger.Warning("User {Username} is marked as restricted but is an administrator; limits are not enforced",
+                username);
+        }
+
+        if (!user.IsRestricted || isAdmin)
+        {
+            _activeSessions.TryAdd(sessionId, new ActiveSession(sessionId, sid, username, DateTime.Now, isAdmin));
             EventRepository.LogEvent(sid, EventType.LOGIN);
             _logger.Information("User logged in (unrestricted): {Username}", username);
             return;
@@ -89,7 +100,7 @@ public sealed class SessionTracker
             }
         }
 
-        _activeSessions.TryAdd(sessionId, new ActiveSession(sessionId, sid, username, DateTime.Now));
+        _activeSessions.TryAdd(sessionId, new ActiveSession(sessionId, sid, username, DateTime.Now, isAdmin));
 
         var loginDetail = "";
         if (limit is not null)
@@ -156,7 +167,7 @@ public sealed class SessionTracker
                     session.Username, now, session.LastTick);
 
                 var clockUser = UserRepository.GetBySid(session.UserSid);
-                if (clockUser is not null && clockUser.IsRestricted)
+                if (clockUser is not null && clockUser.IsRestricted && !session.IsAdmin)
                 {
                     var limit = LimitRepository.GetByUserId(clockUser.Id);
                     if (limit is not null)
