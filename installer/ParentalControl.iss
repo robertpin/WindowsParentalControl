@@ -38,6 +38,12 @@ Source: "..\publish\service\*"; DestDir: "{app}\service"; Flags: ignoreversion r
 ; Admin app files
 Source: "..\publish\admin\*"; DestDir: "{app}\admin"; Flags: ignoreversion recursesubdirs createallsubdirs
 
+[InstallDelete]
+; Older versions were self-contained (the .NET runtime copied into each folder, ~250 MB); start clean so
+; no stale runtime files are left next to the framework-dependent build. The service is stopped by then.
+Type: filesandordirs; Name: "{app}\service"
+Type: filesandordirs; Name: "{app}\admin"
+
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\admin\{#MyAppExeName}"; \
     IconFilename: "{app}\admin\{#MyAppExeName}"; Comment: "Launch Parental Control Admin"
@@ -60,6 +66,88 @@ Type: filesandordirs; Name: "C:\ProgramData\ParentalControl"
 Type: filesandordirs; Name: "{app}"
 
 [Code]
+// The apps are framework-dependent: they need the .NET 8 Desktop Runtime (it includes the base .NET runtime
+// the service uses). If it is missing, the official installer is downloaded from Microsoft and run silently.
+const
+    DotNetRuntimeUrl = 'https://aka.ms/dotnet/8.0/windowsdesktop-runtime-win-x64.exe';
+    DotNetRuntimeFile = 'windowsdesktop-runtime-8-win-x64.exe';
+
+var
+    DownloadPage: TDownloadWizardPage;
+
+function IsDotNetDesktop8Installed(): Boolean;
+var
+    FindRec: TFindRec;
+begin
+    Result := FindFirst(ExpandConstant('{commonpf64}\dotnet\shared\Microsoft.WindowsDesktop.App\8.*'), FindRec);
+    if Result then
+        FindClose(FindRec);
+end;
+
+procedure InitializeWizard();
+begin
+    DownloadPage := CreateDownloadPage(SetupMessage(msgWizardPreparing), SetupMessage(msgPreparingDesc), nil);
+end;
+
+// Download the runtime (if needed) when the user clicks Install, with a progress page
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+    Result := True;
+    if (CurPageID <> wpReady) or IsDotNetDesktop8Installed() then
+        Exit;
+
+    DownloadPage.Clear;
+    DownloadPage.Add(DotNetRuntimeUrl, DotNetRuntimeFile, '');
+    DownloadPage.Show;
+    try
+        try
+            DownloadPage.Download;
+        except
+            if DownloadPage.AbortedByUser then
+                Log('.NET runtime download aborted by the user')
+            else
+                SuppressibleMsgBox('Could not download the .NET 8 Desktop Runtime: ' + GetExceptionMessage + #13#10#13#10
+                    + 'Install it from https://dotnet.microsoft.com/download/dotnet/8.0 and run this setup again.',
+                    mbCriticalError, MB_OK, IDOK);
+            Result := False;
+        end;
+    finally
+        DownloadPage.Hide;
+    end;
+end;
+
+procedure InstallDotNetRuntimeIfNeeded();
+var
+    ResultCode: Integer;
+    Installer: String;
+begin
+    if IsDotNetDesktop8Installed() then
+        Exit;
+
+    Installer := ExpandConstant('{tmp}\' + DotNetRuntimeFile);
+    if not FileExists(Installer) then
+    begin
+        // Silent installs skip the wizard pages: download here, without a progress page
+        try
+            DownloadTemporaryFile(DotNetRuntimeUrl, DotNetRuntimeFile, '', nil);
+        except
+            MsgBox('Could not download the .NET 8 Desktop Runtime: ' + GetExceptionMessage + #13#10#13#10
+                   + 'Install it from https://dotnet.microsoft.com/download/dotnet/8.0, '
+                   + 'then start the Parental Control service or reboot.', mbError, MB_OK);
+            Exit;
+        end;
+    end;
+
+    WizardForm.StatusLabel.Caption := 'Installing the .NET 8 Desktop Runtime...';
+    // 0 = installed, 3010 = installed, reboot required, 1638 = a newer version is already installed
+    if not Exec(Installer, '/install /quiet /norestart', '', SW_HIDE, ewWaitUntilTerminated, ResultCode)
+       or ((ResultCode <> 0) and (ResultCode <> 3010) and (ResultCode <> 1638)) then
+        MsgBox(Format('The .NET 8 Desktop Runtime could not be installed (code %d). '
+               + 'Install it from https://dotnet.microsoft.com/download/dotnet/8.0, '
+               + 'then start the Parental Control service or reboot.', [ResultCode]),
+               mbError, MB_OK);
+end;
+
 function ServiceExists(): Boolean;
 var
     ResultCode: Integer;
@@ -153,7 +241,8 @@ begin
     end
     else if CurStep = ssPostInstall then
     begin
-        // After files are copied: create and start the service
+        // After files are copied: make sure the runtime is there, then create and start the service
+        InstallDotNetRuntimeIfNeeded();
         CreateService();
         StartService();
     end;

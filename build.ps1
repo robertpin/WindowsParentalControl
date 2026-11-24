@@ -3,7 +3,8 @@
 .SYNOPSIS
     Publishes the ParentalControl projects and builds the Inno Setup installer.
 .DESCRIPTION
-    1. Publishes ParentalControl.Service and ParentalControl.Admin as self-contained win-x64.
+    1. Publishes ParentalControl.Service and ParentalControl.Admin as framework-dependent win-x64
+       (the installer installs the .NET 8 Desktop Runtime if it is missing).
     2. Invokes the Inno Setup compiler to produce ParentalControlSetup.exe.
 .PARAMETER InnoSetupPath
     Path to iscc.exe. Defaults to the standard Inno Setup 6 install location.
@@ -40,7 +41,7 @@ Write-Host "`n=== Publishing ParentalControl.Service ===" -ForegroundColor Cyan
 dotnet publish "$srcDir\ParentalControl.Service\ParentalControl.Service.csproj" `
     --configuration $Configuration `
     --runtime win-x64 `
-    --self-contained true `
+    --self-contained false `
     --output "$publishDir\service"
 
 if ($LASTEXITCODE -ne 0) { Write-Error "Service publish failed."; exit 1 }
@@ -50,7 +51,7 @@ Write-Host "`n=== Publishing ParentalControl.Admin ===" -ForegroundColor Cyan
 dotnet publish "$srcDir\ParentalControl.Admin\ParentalControl.Admin.csproj" `
     --configuration $Configuration `
     --runtime win-x64 `
-    --self-contained true `
+    --self-contained false `
     --output "$publishDir\admin"
 
 if ($LASTEXITCODE -ne 0) { Write-Error "Admin publish failed."; exit 1 }
