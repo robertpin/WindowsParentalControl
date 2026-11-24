@@ -127,7 +127,7 @@ Both the Admin UI and the Service share the same SQLite database. When you chang
 | Logging | Serilog (rolling file, 30-day retention) |
 | Platform Integration | Windows Terminal Services API (P/Invoke) |
 | Installer | Inno Setup 6 |
-| Target Framework | .NET 8.0 |
+| Target Framework | .NET 8.0 (framework-dependent: needs the .NET 8 Desktop Runtime, installed by the installer if missing) |
 | Target OS | Windows (x64 only) |
 
 ---
@@ -223,7 +223,7 @@ dotnet run --project src/ParentalControl.Service
 
 ### Building the Installer
 
-The `build.ps1` script publishes both projects as self-contained win-x64 binaries and then invokes Inno Setup to create the installer:
+The `build.ps1` script publishes both projects as framework-dependent win-x64 binaries (about 20 MB in total; the .NET runtime is not copied into them) and then invokes Inno Setup to create the installer:
 
 ```powershell
 .\build.ps1
@@ -244,18 +244,19 @@ powershell.exe -ExecutionPolicy Bypass -File .\build.ps1
 ```
 
 The build produces:
-- `publish/service/` — Self-contained service binaries
-- `publish/admin/` — Self-contained admin UI binaries
+- `publish/service/` — Service binaries (framework-dependent)
+- `publish/admin/` — Admin UI binaries (framework-dependent)
 - `installer/Output/ParentalControlSetup.exe` — The installer
 
 ### Installing
 
 Run `ParentalControlSetup.exe` as administrator. The installer will:
 
-1. Install files to `C:\Program Files\ParentalControl\`
-2. Register and start the `ParentalControl.Service` Windows Service (auto-start, runs as LocalSystem)
-3. Configure automatic service restart on failure (10s, 30s, 60s intervals)
-4. Create Start Menu and Desktop shortcuts for the Admin UI
+1. Install the .NET 8 Desktop Runtime if it is missing (downloaded from Microsoft, installed silently; it is shared with other .NET apps and updated by Windows Update)
+2. Install files to `C:\Program Files\ParentalControl\`
+3. Register and start the `ParentalControl.Service` Windows Service (auto-start, runs as LocalSystem)
+4. Configure automatic service restart on failure (10s, 30s, 60s intervals)
+5. Create Start Menu and Desktop shortcuts for the Admin UI
 
 ### Uninstalling
 
